@@ -1,11 +1,7 @@
 name: Deploy Notebooks to GH Pages
-
 on:
-  workflow_run:
-    workflows: ["Clean Notebooks"]  # must match the 'name:' in clean-notebooks.yml exactly.
-    types:
-      - completed
-    branches: [main]
+  push:
+    branches: [ main ]
 
 permissions:
   contents: read
@@ -14,7 +10,6 @@ permissions:
 
 jobs:
   build-and-deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
