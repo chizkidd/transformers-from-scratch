@@ -176,6 +176,7 @@ jobs:
           
           # Build JavaScript array of all notebooks
           echo "        const notebooks = [" >> public/index.html
+          # Search for all HTML files except index.html
           find public -name "*.html" -not -name "index.html" | while read html_file; do
             # Get relative path from public/
             rel_path="${html_file#public/}"
@@ -183,6 +184,12 @@ jobs:
             display_name=$(basename "$rel_path" .html | sed 's/[_-]/ /g')
             # Get folder for grouping
             folder=$(dirname "$rel_path")
+            
+            # CRITICAL FIX: Explicitly handle the root directory '.'
+            if [ "$folder" = "." ]; then
+                folder="Core Implementations"
+            fi
+            
             echo "            {file: '$rel_path', name: '$display_name', folder: '$folder'}," >> public/index.html
           done
           echo "        ];" >> public/index.html
@@ -192,13 +199,19 @@ jobs:
           // Group notebooks by folder
           const grouped = {};
           notebooks.forEach(nb => {
-              const folder = nb.folder === '.' ? 'Root' : nb.folder;
-              if (!grouped[folder]) grouped[folder] = [];
-              grouped[folder].push(nb);
+              const folderName = nb.folder;
+              if (!grouped[folderName]) grouped[folderName] = [];
+              grouped[folderName].push(nb);
           });
           
-          // Sort folders and notebooks within folders
-          Object.keys(grouped).sort().forEach(folder => {
+          // Sort folders (Core Implementations first, then others)
+          const sortedFolders = Object.keys(grouped).sort((a, b) => {
+              if (a === "Core Implementations") return -1;
+              if (b === "Core Implementations") return 1;
+              return a.localeCompare(b);
+          });
+
+          sortedFolders.forEach(folder => {
               const section = document.createElement('div');
               section.className = 'section';
               
