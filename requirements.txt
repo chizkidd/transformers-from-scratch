@@ -1,0 +1,27 @@
+watermark
+torchinfo
+nbconvert
+jupyter
+
+# Core Machine Learning
+torch>=2.0.0
+torchvision
+torchtext>=0.15.0
+torchaudio
+
+# Data Processing & Tokenization
+spacy>=3.5.0
+numpy>=1.24.0
+pandas
+tqdm
+
+# Visualization & Metrics
+matplotlib
+seaborn
+scikit-learn
+portalocker>=2.0.0
+torchmetrics
+
+# Utilities
+ipykernel
+
