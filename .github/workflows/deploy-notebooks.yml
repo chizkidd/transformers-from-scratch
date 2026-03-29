@@ -2,7 +2,7 @@ name: Deploy Notebooks to GH Pages
 
 on:
   workflow_run:
-    workflows: ["Clean Notebooks"]  # must match the 'name:' in clean-notebooks.yml exactly
+    workflows: ["Clean Notebooks"]  # must match the 'name:' in clean-notebooks.yml exactly.
     types:
       - completed
     branches: [main]
