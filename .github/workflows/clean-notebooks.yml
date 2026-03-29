@@ -70,6 +70,6 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "🤖 chore: sanitize notebooks for GitHub rendering [skip ci]"
-          file_pattern: "*.ipynb **/*.ipynb"
+          file_pattern: "."
           commit_user_name: github-actions[bot]
           commit_user_email: github-actions[bot]@users.noreply.github.com
