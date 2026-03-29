@@ -40,8 +40,8 @@ The following results were achieved on the **Multi30k (English-to-German)** tran
 
 | Title | Dataset | Description | Notebooks |
 | --- | --- | --- | --- |
-| [BERT](https://arxiv.org/abs/1810.04805): Pre-training of Deep Bidirectional Transformers | [SST-2 (GLUE)](https://huggingface.co/datasets/nyu-mll/glue) | Masked Language Modeling (MLM) and Next Sentence Prediction (NSP) for downstream sentiment analysis. | [![PyTorch](https://img.shields.io/badge/Py-Torch-red)](bert-sst2-sentiment-analysis.ipynb) |
-| [BERT](https://arxiv.org/abs/1810.04805): Question Answering | [SQuAD v2.0](https://huggingface.co/datasets/rajpurkar/squad_v2) | Fine-tuning a pre-trained BERT encoder for extractive question answering. | [![PyTorch](https://img.shields.io/badge/Py-Torch-red)](bert-squad-v2.ipynb) |
+| [BERT](https://arxiv.org/abs/1810.04805): Pre-training of Deep Bidirectional Transformers | [SST-2 (GLUE)](https://huggingface.co/datasets/nyu-mll/glue) | Masked Language Modeling (MLM) and Next Sentence Prediction (NSP) for downstream sentiment analysis. | [![PyTorch](https://img.shields.io/badge/Py-Torch-red)](bert-sentiment-analysis.ipynb) |
+| [BERT](https://arxiv.org/abs/1810.04805): Question Answering | [SQuAD v2.0](https://huggingface.co/datasets/rajpurkar/squad_v2) | Fine-tuning a pre-trained BERT encoder for extractive question answering. | [![PyTorch](https://img.shields.io/badge/Py-Torch-red)](bert-question-answering.ipynb) |
 
 #### Decoder-only: Generative Pre-training `GPT` (Autoregressive)
 
