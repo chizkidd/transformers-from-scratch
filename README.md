@@ -34,21 +34,21 @@ The following results were achieved on the **Multi30k (English-to-German)** tran
 
 | Title | Dataset | Description | Notebooks |
 | --- | --- | --- | --- |
-| [Attention Is All You Need](https://arxiv.org/abs/1706.03762) | [Multi30k](https://huggingface.co/datasets/bentrevett/multi30k) | Multi-Head Attention, Positional Encodings, and Label Smoothing from scratch. | [![PyTorch](https://img.shields.io/badge/Py-Torch-red)](pytorch/attention-is-all-you-need.ipynb) |
+| [Attention Is All You Need](https://arxiv.org/abs/1706.03762) | [Multi30k](https://huggingface.co/datasets/bentrevett/multi30k) | Multi-Head Attention, Positional Encodings, and Label Smoothing from scratch. | [![PyTorch](https://img.shields.io/badge/Py-Torch-red)](attention-is-all-you-need.ipynb) |
 
 #### Encoder-only: Representation Learning & Classification
 
 | Title | Dataset | Description | Notebooks |
 | --- | --- | --- | --- |
-| [BERT](https://arxiv.org/abs/1810.04805): Pre-training of Deep Bidirectional Transformers | [SST-2 (GLUE)](https://huggingface.co/datasets/nyu-mll/glue) | Masked Language Modeling (MLM) and Next Sentence Prediction (NSP) for downstream sentiment analysis. | [![PyTorch](https://img.shields.io/badge/Py-Torch-red)](pytorch/transformers/transformer-bert-sst2.ipynb) |
-| [BERT](https://arxiv.org/abs/1810.04805): Question Answering | [SQuAD v2.0](https://huggingface.co/datasets/rajpurkar/squad_v2) | Fine-tuning a pre-trained BERT encoder for extractive question answering. | [![PyTorch](https://img.shields.io/badge/Py-Torch-red)](pytorch/transformers/transformer-bert-squad.ipynb) |
+| [BERT](https://arxiv.org/abs/1810.04805): Pre-training of Deep Bidirectional Transformers | [SST-2 (GLUE)](https://huggingface.co/datasets/nyu-mll/glue) | Masked Language Modeling (MLM) and Next Sentence Prediction (NSP) for downstream sentiment analysis. | [![PyTorch](https://img.shields.io/badge/Py-Torch-red)](bert-sst2.ipynb) |
+| [BERT](https://arxiv.org/abs/1810.04805): Question Answering | [SQuAD v2.0](https://huggingface.co/datasets/rajpurkar/squad_v2) | Fine-tuning a pre-trained BERT encoder for extractive question answering. | [![PyTorch](https://img.shields.io/badge/Py-Torch-red)](bert-squad-v2.ipynb) |
 
 #### Decoder-only: Generative Pre-training, GPT (Autoregressive)
 
 | Title | Dataset | Description | Notebooks |
 | --- | --- | --- | --- |
-| [GPT-1](https://s3-us-west-2.amazonaws.com/openai-assets/research-covers/language-unsupervised/language_understanding_paper.pdf): Improving Language Understanding | [BookCorpus](https://huggingface.co/datasets/bookcorpus/bookcorpus) | Generative pre-training using a 12-layer decoder-only architecture followed by discriminative fine-tuning. | [![PyTorch](https://img.shields.io/badge/Py-Torch-red)](pytorch/transformers/transformer-gpt1.ipynb) |
-| [GPT-2](https://d4mucfpotywv.cloudfront.net/better-language-models/language_models_are_unsupervised_multitask_learners.pdf): Language Models are Unsupervised Multitask Learners | [WikiText-103](https://huggingface.co/datasets/Salesforce/wikitext) | Zero-shot task transfer using a larger decoder-only model trained on the WebText dataset. | [![PyTorch](https://img.shields.io/badge/Py-Torch-red)](pytorch/transformers/transformer-gpt2.ipynb) |
+| [GPT-1](https://s3-us-west-2.amazonaws.com/openai-assets/research-covers/language-unsupervised/language_understanding_paper.pdf): Improving Language Understanding | [BookCorpus](https://huggingface.co/datasets/bookcorpus/bookcorpus) | Generative pre-training using a 12-layer decoder-only architecture followed by discriminative fine-tuning. | [![PyTorch](https://img.shields.io/badge/Py-Torch-red)](gpt1.ipynb) |
+| [GPT-2](https://d4mucfpotywv.cloudfront.net/better-language-models/language_models_are_unsupervised_multitask_learners.pdf): Language Models are Unsupervised Multitask Learners | [WikiText-103](https://huggingface.co/datasets/Salesforce/wikitext) | Zero-shot task transfer using a larger decoder-only model trained on the WebText dataset. | [![PyTorch](https://img.shields.io/badge/Py-Torch-red)](gpt2.ipynb) |
 
 ---
 
