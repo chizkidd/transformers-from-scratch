@@ -18,7 +18,7 @@ Unlike high-level libraries (Hugging Face), these implementations focus on the *
 ---
 
 ## Performance Audit: RNN vs. Transformer
-The following results were achieved on the **Multi30k (English-to-German)** translation task, comparing my [RNN/GRU baseline](https://github.com/chizkidd/deep-learning-models/blob/main/pytorch/rnn/rnn-seq2seq.ipynb) against this repository's Transformer implementation (**AIAYN**).
+The following results were achieved on the **Multi30k (English-to-German)** translation task, comparing my [RNN/LSTM baseline](https://github.com/chizkidd/deep-learning-models/blob/main/pytorch/rnn/rnn-seq2seq.ipynb) against this repository's Transformer implementation (**AIAYN**).
 
 | Metric | RNN (LSTM) Baseline (Seq2Seq) | Transformer (From Scratch) | Verdict |
 | :--- | :---: | :---: | :--- |
