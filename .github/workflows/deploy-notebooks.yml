@@ -1,7 +1,11 @@
 name: Deploy Notebooks to GH Pages
+
 on:
-  push:
-    branches: [ main ]
+  workflow_run:
+    workflows: ["Clean Notebooks"]  # must match the 'name:' in clean-notebooks.yml exactly
+    types:
+      - completed
+    branches: [main]
 
 permissions:
   contents: read
@@ -10,6 +14,7 @@ permissions:
 
 jobs:
   build-and-deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -24,7 +29,7 @@ jobs:
       - name: Install dependencies
         run: |
           # Install jupyter and nbconvert (always needed)
-          pip install jupyter nbconvert ipywidgets
+          pip install jupyter nbconvert
           
           # Install requirements.txt if it exists
           if [ -f requirements.txt ]; then
