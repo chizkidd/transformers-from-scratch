@@ -7,7 +7,7 @@
 
 A comprehensive, high-performance, collection of Transformer architectures implemented from scratch in PyTorch. This repository tracks the evolution of Attention mechanisms, from the original **"Attention Is All You Need"** paper to modern Large Language Models (LLMs).
 
-> **Note:** This repository is a specialized deep-dive into Attention-based architectures. For my broader research into RNNs, CNNs, and Reinforcement Learning, see [deep-learning-models](https://github.com/chizkidd/deep-learning-models).
+> **Note:** This repository is a specialized deep-dive into Attention-based architectures. For my broader research into RNNs, and CNNs, see [deep-learning-models](https://github.com/chizkidd/deep-learning-models).
 
 ## Why this repository?
 Unlike high-level libraries (Hugging Face), these implementations focus on the **first-principles math** and the technical hurdles of training Transformers:
