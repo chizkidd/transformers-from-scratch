@@ -24,7 +24,7 @@ jobs:
       - name: Install dependencies
         run: |
           # Install jupyter and nbconvert (always needed)
-          pip install jupyter nbconvert
+          pip install jupyter nbconvert ipywidgets
           
           # Install requirements.txt if it exists
           if [ -f requirements.txt ]; then
