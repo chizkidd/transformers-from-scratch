@@ -47,8 +47,8 @@ The following results were achieved on the **Multi30k (English-to-German)** tran
 
 | Title | Dataset | Description | Notebooks |
 | --- | --- | --- | --- |
-| [GPT-1](https://s3-us-west-2.amazonaws.com/openai-assets/research-covers/language-unsupervised/language_understanding_paper.pdf): Improving Language Understanding | [BookCorpus](https://huggingface.co/datasets/bookcorpus/bookcorpus) | Generative pre-training using a 12-layer decoder-only architecture followed by discriminative fine-tuning. | [![PyTorch](https://img.shields.io/badge/Py-Torch-red)](gpt1.ipynb) |
-| [GPT-2](https://d4mucfpotywv.cloudfront.net/better-language-models/language_models_are_unsupervised_multitask_learners.pdf): Language Models are Unsupervised Multitask Learners | [WikiText-103](https://huggingface.co/datasets/Salesforce/wikitext) | Zero-shot task transfer using a larger decoder-only model trained on the WebText dataset. | [![PyTorch](https://img.shields.io/badge/Py-Torch-red)](gpt2.ipynb) |
+| [GPT-1](https://cdn.openai.com/research-covers/language-unsupervised/language_understanding_paper.pdf): Improving Language Understanding | [BookCorpus](https://huggingface.co/datasets/bookcorpus/bookcorpus) | Generative pre-training using a 12-layer decoder-only architecture followed by discriminative fine-tuning. | [![PyTorch](https://img.shields.io/badge/Py-Torch-red)](gpt1.ipynb) |
+| [GPT-2](https://cdn.openai.com/better-language-models/language_models_are_unsupervised_multitask_learners.pdf): Language Models are Unsupervised Multitask Learners | [WikiText-103](https://huggingface.co/datasets/Salesforce/wikitext) | Zero-shot task transfer using a larger decoder-only model trained on the WebText dataset. | [![PyTorch](https://img.shields.io/badge/Py-Torch-red)](gpt2.ipynb) |
 
 ---
 
