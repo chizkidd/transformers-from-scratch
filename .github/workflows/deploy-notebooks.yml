@@ -1,253 +1,214 @@
-name: Deploy Notebooks to GH Pages
+name: Deploy Notebooks to GitHub Pages
+
+# Runs AFTER the clean workflow finishes — avoids the race condition where
+# nbconvert would see dirty notebooks and crash on widget metadata.
 on:
-  push:
-    branches: [ main ]
+  workflow_run:
+    workflows: ["Clean Notebooks for GitHub Rendering"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
   pages: write
   id-token: write
 
+# Only one Pages deployment at a time.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
+    # For workflow_run events, only proceed if the upstream job succeeded.
+    # workflow_dispatch always proceeds.
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
     steps:
-      - name: Checkout
+      - name: Checkout (latest commit after clean)
         uses: actions/checkout@v4
+        with:
+          ref: main   # always grab the post-clean commit
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-          cache: 'pip'
 
       - name: Install dependencies
         run: |
-          # Install jupyter and nbconvert (always needed)
-          pip install jupyter nbconvert
-          
-          # Install requirements.txt if it exists
-          if [ -f requirements.txt ]; then
-            pip install -r requirements.txt
-          fi
+          pip install jupyter nbconvert nbformat
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      - name: Convert Notebooks to HTML
+      # Safety net: re-run the same cleaning logic in case this job was
+      # triggered via workflow_dispatch on a repo that hasn't been cleaned yet.
+      - name: Strip widget metadata (safety net)
+        run: |
+          python - <<'EOF'
+          import nbformat, glob
+          WIDGET_VIEW_MIME  = "application/vnd.jupyter.widget-view+json"
+          WIDGET_STATE_MIME = "application/vnd.jupyter.widget-state+json"
+          for path in glob.glob("**/*.ipynb", recursive=True):
+              if '.ipynb_checkpoints' in path:
+                  continue
+              with open(path, 'r', encoding='utf-8') as f:
+                  nb = nbformat.read(f, as_version=4)
+              modified = False
+              for key in ('widgets', 'colab', 'accelerator'):
+                  if key in nb.metadata:
+                      del nb.metadata[key]; modified = True
+              for cell in nb.cells:
+                  if cell.cell_type != 'code': continue
+                  before = len(cell.get('outputs', []))
+                  cell['outputs'] = [
+                      o for o in cell.get('outputs', [])
+                      if WIDGET_VIEW_MIME  not in o.get('data', {})
+                      and WIDGET_STATE_MIME not in o.get('data', {})
+                  ]
+                  if len(cell['outputs']) != before: modified = True
+              if modified:
+                  with open(path, 'w', encoding='utf-8') as f:
+                      nbformat.write(nb, f)
+                  print(f"✓ Safety-net cleaned: {path}")
+          EOF
+
+      - name: Convert notebooks to HTML
         run: |
           mkdir -p public
-          
-          # Find ALL .ipynb files recursively, preserving directory structure
-          find . -name "*.ipynb" -not -path "./public/*" -not -path "./.git/*" | while read notebook; do
-            # Remove leading "./" from path
+          find . -name "*.ipynb" \
+            -not -path "./public/*" \
+            -not -path "./.git/*" \
+            -not -path "./.ipynb_checkpoints/*" | while read notebook; do
             clean_path="${notebook#./}"
-            
-            # Get the directory of the notebook
             notebook_dir=$(dirname "$clean_path")
-            
-            # Create the corresponding directory in public/
             mkdir -p "public/$notebook_dir"
-            
-            echo "Converting $clean_path to public/$notebook_dir/"
-            jupyter nbconvert --to html --template lab --output-dir="public/$notebook_dir" "$clean_path" || echo "Warning: Failed to convert $clean_path"
-          done
-          
-          # Copy ALL supporting files (images, data, etc.) - find all non-.ipynb files
-          find . -type f -not -name "*.ipynb" \
-                         -not -path "./public/*" \
-                         -not -path "./.git/*" \
-                         -not -path "./.github/*" \
-                         -not -name "requirements.txt" \
-                         -not -name "README.md" \
-                         -not -name "LICENSE" \
-                         -not -name ".gitignore" \
-                         -not -name "*.yml" \
-                         -not -name "*.py" | while read file; do
-            clean_path="${file#./}"
-            target_dir="public/$(dirname "$clean_path")"
-            mkdir -p "$target_dir"
-            cp "$file" "$target_dir/" 2>/dev/null || true
+            echo "Converting: $clean_path"
+            jupyter nbconvert --to html \
+              --template lab \
+              --output-dir="public/$notebook_dir" \
+              "$clean_path" \
+              && echo "  ✓ OK" \
+              || echo "  ⚠️  Failed: $clean_path"
           done
 
-          # Clean up notebook headers and inject blog header loader
-          find public -name "*.html" -not -name "index.html" -exec sed -i '/<header class="site-header">/,/<\/header>/d' {} +
-          find public -name "*.html" -not -name "index.html" -exec sed -i 's|<body>|<body><script src="https://chizkidd.github.io/header-loader.js"></script>|' {} +
-
-          # Get repo name and current date
+      - name: Build index page
+        run: |
           REPO_NAME="${GITHUB_REPOSITORY#*/}"
           LAST_UPDATED=$(date +"%B %d, %Y")
-          
-          # Get repo title (from README or use repo name)
           REPO_TITLE=$(grep -m1 "^# " README.md 2>/dev/null | sed 's/^# //' || echo "$REPO_NAME")
 
-          echo "=== Building index for: $REPO_TITLE ==="
-
-          # Generate the index.html landing page
           cat > public/index.html << HTMLEOF
           <!DOCTYPE html>
-          <html>
+          <html lang="en">
           <head>
-              <meta charset="UTF-8">
-              <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <title>$REPO_TITLE</title>
-              <style>
-                  * { margin: 0; padding: 0; }
-                  html, body { height: 100%; }
-                  body {
-                      font-family: Helvetica, Arial, sans-serif;
-                      font-size: 16px;
-                      line-height: 1.5;
-                      font-weight: 300;
-                      background-color: #fdfdfd;
-                      display: grid;
-                      grid-template-rows: auto 1fr auto;
-                      min-height: 100vh;
-                  }
-                  h1, h2, h3, h4, h5, h6 { font-size: 100%; font-weight: 400; }
-                  a { color: #2a7ae2; text-decoration: none; }
-                  a:hover { color: #000; text-decoration: underline; }
-                  a:visited { color: #205caa; }
-                  .wrap { max-width: 800px; padding: 0 30px; margin: 0 auto; }
-                  .page-content { padding: 30px 0; background-color: #fff; }
-                  .header-matched-heading {
-                      color: #333;
-                      font-size: 32px;
-                      letter-spacing: -1.2px;
-                      font-weight: 400;
-                      text-align: left;
-                      line-height: 1.1;
-                      margin-top: 30px;
-                      margin-bottom: 25px;
-                  }
-                  .section-heading {
-                      font-size: 20px;
-                      font-weight: 500;
-                      color: #555;
-                      border-bottom: 1px solid #f0f0f0;
-                      padding-bottom: 5px;
-                      margin-top: 40px;
-                      margin-bottom: 15px;
-                  }
-                  .home-nav-list {
-                      padding-left: 20px;
-                      margin-bottom: 30px;
-                      list-style-type: disc;
-                  }
-                  .home-nav-list li { margin-bottom: 8px; }
-                  .home-nav-list a { font-size: 1.0em; font-weight: 300; color: #2a7ae2; }
-                  .home-nav-list a:hover { color: #000; text-decoration: underline; }
-                  .site-footer {
-                      border-top: 1px solid #e8e8e8;
-                      padding: 30px 0;
-                  }
-                  .site-footer p {
-                      font-size: 15px;
-                      letter-spacing: -.3px;
-                      color: #828282;
-                      text-align: center;
-                  }
-                  .site-footer a { color: #2a7ae2; }
-                  .last-updated { margin-top: 10px; font-size: 13px; color: #999; }
-                  @media screen and (max-width: 600px) {
-                      .wrap { padding: 0 12px; }
-                  }
-              </style>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>${REPO_TITLE}</title>
+            <style>
+              *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+              body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+                     background: #f6f8fa; color: #24292f; min-height: 100vh; }
+              .site-header { background: #fff; border-bottom: 1px solid #d0d7de; padding: 20px 0; }
+              .wrap { max-width: 860px; margin: 0 auto; padding: 0 24px; }
+              .site-header h1 { font-size: 22px; font-weight: 600; }
+              .site-header p  { font-size: 14px; color: #57606a; margin-top: 4px; }
+              .content { padding: 32px 0; }
+              .section-label {
+                font-size: 12px; font-weight: 600; color: #57606a;
+                text-transform: uppercase; letter-spacing: .06em;
+                margin: 28px 0 10px;
+              }
+              .nb-card {
+                background: #fff; border: 1px solid #d0d7de; border-radius: 6px;
+                padding: 14px 18px; margin-bottom: 8px;
+                display: flex; align-items: center; gap: 12px;
+                transition: border-color .15s, box-shadow .15s;
+              }
+              .nb-card:hover { border-color: #0969da; box-shadow: 0 1px 4px rgba(9,105,218,.15); }
+              .nb-card .icon { font-size: 18px; flex-shrink: 0; }
+              .nb-card a { font-size: 15px; font-weight: 500; color: #0969da; text-decoration: none; }
+              .nb-card a:hover { text-decoration: underline; }
+              .site-footer { border-top: 1px solid #d0d7de; padding: 24px 0; text-align: center;
+                             font-size: 13px; color: #57606a; }
+              .site-footer a { color: #0969da; text-decoration: none; }
+              .site-footer a:hover { text-decoration: underline; }
+            </style>
           </head>
           <body>
-              <script src="https://chizkidd.github.io/header-loader.js"></script>
-
-              <div class="page-content">
-                  <div class="wrap">
-                      <h1 class="header-matched-heading">$REPO_TITLE</h1>
-                      <div id="notebook-sections"></div>
-                  </div>
+            <header class="site-header">
+              <div class="wrap">
+                <h1>${REPO_TITLE}</h1>
+                <p>Rendered Jupyter Notebooks · <a href="https://github.com/${GITHUB_REPOSITORY}" target="_blank">View source on GitHub</a></p>
               </div>
-
-              <footer class="site-footer">
-                  <div class="wrap">
-                      <p>
-                          <a href="https://github.com/${GITHUB_REPOSITORY}" target="_blank">View Repository</a>
-                      </p>
-                      <p class="last-updated">Last updated: $LAST_UPDATED</p>
-                  </div>
-              </footer>
-
-              <script>
-                  const sections = document.getElementById('notebook-sections');
+            </header>
+            <main class="content">
+              <div class="wrap" id="notebooks"></div>
+            </main>
+            <footer class="site-footer">
+              <p>Last updated: ${LAST_UPDATED}</p>
+            </footer>
+            <script>
+              const notebooks = [
           HTMLEOF
-          
-          # Build JavaScript array of all notebooks
-          echo "        const notebooks = [" >> public/index.html
-          # Search for all HTML files except index.html
-          find public -name "*.html" -not -name "index.html" | while read html_file; do
-            # Get relative path from public/
-            rel_path="${html_file#public/}"
-            # Get display name (remove .html, replace underscores/dashes with spaces)
-            display_name=$(basename "$rel_path" .html | sed 's/[_-]/ /g')
-            # Get folder for grouping
-            folder=$(dirname "$rel_path")
-            
-            # CRITICAL FIX: Explicitly handle the root directory '.'
-            if [ "$folder" = "." ]; then
-                folder="Core Implementations"
-            fi
-            
-            echo "            {file: '$rel_path', name: '$display_name', folder: '$folder'}," >> public/index.html
-          done
-          echo "        ];" >> public/index.html
-          
-          cat >> public/index.html << 'JSEOF'
-          
-          // Group notebooks by folder
-          const grouped = {};
-          notebooks.forEach(nb => {
-              const folderName = nb.folder;
-              if (!grouped[folderName]) grouped[folderName] = [];
-              grouped[folderName].push(nb);
-          });
-          
-          // Sort folders (Core Implementations first, then others)
-          const sortedFolders = Object.keys(grouped).sort((a, b) => {
-              if (a === "Core Implementations") return -1;
-              if (b === "Core Implementations") return 1;
-              return a.localeCompare(b);
-          });
 
-          sortedFolders.forEach(folder => {
-              const section = document.createElement('div');
-              section.className = 'section';
-              
-              const heading = document.createElement('h2');
-              heading.className = 'section-heading';
-              heading.textContent = folder.replace(/[_-]/g, ' ').replace(/\//g, ' / ');
-              section.appendChild(heading);
-              
-              const list = document.createElement('ul');
-              list.className = 'home-nav-list';
-              
-              // Sort notebooks alphabetically
-              grouped[folder].sort((a, b) => a.name.localeCompare(b.name));
-              
-              grouped[folder].forEach(nb => {
-                  const li = document.createElement('li');
-                  const a = document.createElement('a');
-                  a.href = nb.file;
-                  a.textContent = nb.name;
-                  li.appendChild(a);
-                  list.appendChild(li);
+          find public -name "*.html" -not -name "index.html" | sort | while read html_file; do
+            rel="${html_file#public/}"
+            raw_name=$(basename "$rel" .html)
+            display=$(echo "$raw_name" | tr '_-' '  ' | \
+              awk '{for(i=1;i<=NF;i++){$i=toupper(substr($i,1,1)) tolower(substr($i,2))}; print}')
+            folder=$(dirname "$rel")
+            [ "$folder" = "." ] && folder="Notebooks"
+            printf '    { file: "%s", name: "%s", folder: "%s" },\n' \
+              "$rel" "$display" "$folder" >> public/index.html
+          done
+
+          cat >> public/index.html << 'JSEOF'
+              ];
+
+              const grouped = {};
+              notebooks.forEach(n => {
+                (grouped[n.folder] = grouped[n.folder] || []).push(n);
               });
-              
-              section.appendChild(list);
-              sections.appendChild(section);
-          });
-              </script>
+
+              const container = document.getElementById('notebooks');
+              Object.keys(grouped).sort().forEach(folder => {
+                const sec = document.createElement('div');
+                const label = document.createElement('div');
+                label.className = 'section-label';
+                label.textContent = folder.replace(/[_\-]/g, ' ').replace(/\//g, ' / ');
+                sec.appendChild(label);
+                grouped[folder].sort((a,b) => a.name.localeCompare(b.name)).forEach(nb => {
+                  const card = document.createElement('div');
+                  card.className = 'nb-card';
+                  card.innerHTML = '<span class="icon">📓</span>' +
+                    '<a href="' + nb.file + '">' + nb.name + '</a>';
+                  sec.appendChild(card);
+                });
+                container.appendChild(sec);
+              });
+            </script>
           </body>
           </html>
           JSEOF
 
-      - name: Upload artifact
+      - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: 'public'
+          path: public
 
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      pages: write
+      id-token: write
+    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
