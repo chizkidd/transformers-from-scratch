@@ -32,28 +32,41 @@ The following results were achieved on the **Multi30k (English-to-German)** tran
 
 #### Encoder-Decoder: Neural Machine Translation (NMT)
 
-| Title | Dataset | Description | Notebooks |
-| --- | --- | --- | --- |
-| [Attention Is All You Need](https://arxiv.org/abs/1706.03762) | [Multi30k](https://huggingface.co/datasets/bentrevett/multi30k) | Multi-Head Attention, Positional Encodings, and Label Smoothing from scratch. | [![PyTorch](https://img.shields.io/badge/Py-Torch-red)](attention-is-all-you-need.ipynb) |
+| Task | Title & Dataset | Task Type | Input Format | Classes | Primary Metric | Description | Notebook |
+|------|----------------|-----------|--------------|---------|---------------|-------------|----------|
+| **1** | **[Attention Is All You Need (Transformer)](https://arxiv.org/abs/1706.03762)**<br>📚 [Multi30k](https://huggingface.co/datasets/bentrevett/multi30k) | Neural Machine Translation (Seq2Seq) | Source: `[POS] tokens [EOS]` → Encoder<br>Target: `[POS] tokens [EOS]` → Decoder (teacher forcing) | N/A (generation) | BLEU Score | From-scratch implementation of the original Transformer architecture featuring Multi-Head Attention, positional encodings, residual connections, and label smoothing for English-German translation. | [![PyTorch](https://img.shields.io/badge/Py-Torch-red)](attention-is-all-you-need.ipynb) |
 
 ### Pre-Training & Fine-Tuning
 
-#### Encoder-only: Representation Learning & Classification. 
+#### <u>Encoder-only</u>: Representation Learning & Classification. 
 
-| Title | Dataset | Description | Notebooks |
-| --- | --- | --- | --- |
-| [BERT](https://arxiv.org/abs/1810.04805): Pre-training of Deep Bidirectional Transformers | [WikiText-2](https://huggingface.co/datasets/Salesforce/wikitext), [SST-2 (GLUE)](https://huggingface.co/datasets/nyu-mll/glue) | Masked Language Modeling (MLM) and Next Sentence Prediction (NSP) for downstream sentiment analysis. _Pre-training: WikiText-2 proxy._ | [![PyTorch](https://img.shields.io/badge/Py-Torch-red)](bert-sentiment-analysis.ipynb) |
-| [BERT](https://arxiv.org/abs/1810.04805): Question Answering | [WikiText-2](https://huggingface.co/datasets/Salesforce/wikitext), [SQuAD v2.0](https://huggingface.co/datasets/rajpurkar/squad_v2) | Fine-tuning a pre-trained BERT encoder for extractive question answering. _Pre-training: WikiText-2 proxy._ | [![PyTorch](https://img.shields.io/badge/Py-Torch-red)](bert-question-answering.ipynb) |
+| Task | Title & Dataset | Task Type | Input Format | Classes | Primary Metric | Description | Notebook |
+|------|----------------|-----------|--------------|---------|---------------|-------------|----------|
+| **BERT-1** | **[BERT: Sentiment Classification](https://arxiv.org/abs/1810.04805)**<br>📚 [WikiText-2](https://huggingface.co/datasets/Salesforce/wikitext) + [SST-2 (GLUE)](https://huggingface.co/datasets/nyu-mll/glue) | Binary Sentiment Classification | `[CLS] sentence [SEP]` | 2 (Neg/Pos) | Accuracy | Fine-tuning pre-trained BERT (Masked LM + Next Sentence Prediction objectives) for binary sentiment analysis using the `[CLS]` token representation. Pre-training on WikiText-2 proxy. | [![PyTorch](https://img.shields.io/badge/Py-Torch-red)](bert-sentiment-analysis.ipynb) |
+| **BERT-2** | **[BERT: Extractive Question Answering](https://arxiv.org/abs/1810.04805)**<br>📚 [WikiText-2](https://huggingface.co/datasets/Salesforce/wikitext) + [SQuAD v2.0](https://huggingface.co/datasets/rajpurkar/squad_v2) | Span-based Question Answering | `[CLS] question [SEP] context [SEP]` | N/A (start/end positions) | Exact Match + F1 | Fine-tuning BERT for extractive QA by predicting answer span start/end token positions within context. Handles unanswerable questions via no-answer logit. Pre-training on WikiText-2 proxy. | [![PyTorch](https://img.shields.io/badge/Py-Torch-red)](bert-question-answering.ipynb) |
 
-#### Decoder-only: Generative Pre-training `GPT` (Autoregressive) 
+#### <u>Decoder-only</u>: (Autoregressive) Generative Pre-training  & (Discriminative) Fine-Tuning
 
-| Title | Dataset | Description | Notebooks |
-| --- | --- | --- | --- |
-| [GPT-1](https://cdn.openai.com/research-covers/language-unsupervised/language_understanding_paper.pdf): Sentiment Classification | [WikiText-2](https://huggingface.co/datasets/Salesforce/wikitext), [SST-2 (GLUE)](https://huggingface.co/datasets/nyu-mll/glue) | Fine-tuning for binary sentiment classification (positive/negative) using `[BOS] sentence [CLF]` format with auxiliary LM loss. _Pre-training: WikiText-2 proxy._ | [![PyTorch](https://img.shields.io/badge/Py-Torch-red)](gpt1-sentiment-analysis.ipynb) |
-| [GPT-1](https://cdn.openai.com/research-covers/language-unsupervised/language_understanding_paper.pdf): Natural Language Inference | [WikiText-2](https://huggingface.co/datasets/Salesforce/wikitext), [SNLI](https://huggingface.co/datasets/stanfordnlp/snli) | Fine-tuning for 3-class NLI (entailment/contradiction/neutral) using `[BOS] premise [SEP] hypothesis [CLF]` format with auxiliary LM loss. _Pre-training: WikiText-2 proxy._ | [![PyTorch](https://img.shields.io/badge/Py-Torch-red)](gpt1-nli-inference.ipynb) |
-| [GPT-1](https://cdn.openai.com/research-covers/language-unsupervised/language_understanding_paper.pdf): Sentence Similarity | [WikiText-2](https://huggingface.co/datasets/Salesforce/wikitext), [MRPC](https://huggingface.co/datasets/nyu-mll/glue) | Binary paraphrase detection (paraphrase/not) using delimiter token format `[BOS] sentence1 [SEP] sentence2 [CLF]` with discriminative fine-tuning. _Pre-training: WikiText-2 proxy._ | [![PyTorch](https://img.shields.io/badge/Py-Torch-red)](gpt1-sentence-similarity.ipynb) |
-| [GPT-1](https://cdn.openai.com/research-covers/language-unsupervised/language_understanding_paper.pdf): Question Answering | [WikiText-2](https://huggingface.co/datasets/Salesforce/wikitext), [RACE](https://huggingface.co/datasets/ehovy/race) | Multiple-choice QA with 4 options per question; input format `[BOS] context [SEP] question+answer_i [CLF]`, select highest logit option. _Pre-training: WikiText-2 proxy._ | [![PyTorch](https://img.shields.io/badge/Py-Torch-red)](gpt1-question-answering.ipynb) |
-| [GPT-2](https://cdn.openai.com/better-language-models/language_models_are_unsupervised_multitask_learners.pdf): Language Models are Unsupervised Multitask Learners | [WikiText-103](https://huggingface.co/datasets/Salesforce/wikitext) | Zero-shot task transfer using a larger decoder-only model trained on the WebText dataset. | [![PyTorch](https://img.shields.io/badge/Py-Torch-red)](gpt2.ipynb) |
+##### **GPT-1**
+
+| Task | Title & Dataset | Task Type | Input Format | Classes | Primary Metric | Description | Notebook |
+|------|----------------|-----------|--------------|---------|---------------|-------------|----------|
+| **1** | **[GPT-1: Sentiment Classification](https://cdn.openai.com/research-covers/language-unsupervised/language_understanding_paper.pdf)**<br>📚 [WikiText-2](https://huggingface.co/datasets/Salesforce/wikitext) + [SST-2 (GLUE)](https://huggingface.co/datasets/nyu-mll/glue) | Binary Sentiment Classification | `[BOS] sentence [CLF]` | 2 (Neg/Pos) | Accuracy | Fine-tuning for binary sentiment (positive/negative) with auxiliary LM loss. Pre-training on WikiText-2 proxy. | [![PyTorch](https://img.shields.io/badge/Py-Torch-red)](gpt1-task1-sst2.ipynb) |
+| **2** | **[GPT-1: Natural Language Inference](https://cdn.openai.com/research-covers/language-unsupervised/language_understanding_paper.pdf)**<br>📚 [WikiText-2](https://huggingface.co/datasets/Salesforce/wikitext) + [SNLI](https://huggingface.co/datasets/stanfordnlp/snli) | 3-Class NLI | `[BOS] premise [SEP] hypothesis [CLF]` | 3 (Entail/Neutral/Contradict) | Accuracy + F1-macro | Fine-tuning for entailment reasoning with delimiter tokens and auxiliary LM regularization. Pre-training on WikiText-2 proxy. | [![PyTorch](https://img.shields.io/badge/Py-Torch-red)](gpt1-task2-snli.ipynb) |
+| **3** | **[GPT-1: Paraphrase Detection](https://cdn.openai.com/research-covers/language-unsupervised/language_understanding_paper.pdf)**<br>📚 [WikiText-2](https://huggingface.co/datasets/Salesforce/wikitext) + [MRPC (GLUE)](https://huggingface.co/datasets/nyu-mll/glue) | Binary Sentence Similarity | `[BOS] sent₁ [SEP] sent₂ [CLF]` | 2 (Paraphrase/Not) | Accuracy + F1-binary | Discriminative fine-tuning for paraphrase detection using sentence-pair format with auxiliary LM loss. Pre-training on WikiText-2 proxy. | [![PyTorch](https://img.shields.io/badge/Py-Torch-red)](gpt1-task3-mrpc.ipynb) |
+| **4** | **[GPT-1: Reading Comprehension](https://cdn.openai.com/research-covers/language-unsupervised/language_understanding_paper.pdf)**<br>📚 [WikiText-2](https://huggingface.co/datasets/Salesforce/wikitext) + [RACE](https://huggingface.co/datasets/ehovy/race) | Multiple-Choice QA | `[BOS] article [SEP] question+options [CLF]` | 4 (A/B/C/D) | Accuracy | Multiple-choice QA where model selects highest-logit option from 4 candidates. Input concatenates context, question, and options. Pre-training on WikiText-2 proxy. | [![PyTorch](https://img.shields.io/badge/Py-Torch-red)](gpt1-task4-race.ipynb) |
+
+>**Key Notes:**
+>- **Task 2 (SNLI)** is the 3-class NLI task that bridges single-sentence (SST-2) and sentence-pair (MRPC) classification.
+>- All tasks follow the same GPT-1 fine-tuning pattern: `[CLF]` token at the end → linear head → softmax.
+>- Auxiliary LM loss ($\lambda = 0.5$) is used across all tasks per the original paper.
+
+
+##### **GPT-2**
+
+| Task | Title & Dataset | Task Type | Input Format | Classes | Primary Metric | Description | Notebook |
+|------|----------------|-----------|--------------|---------|---------------|-------------|----------|
+| **1** | **[GPT-2: Zero-Shot Multitask Learning](https://cdn.openai.com/better-language-models/language_models_are_unsupervised_multitask_learners.pdf)**<br>📚 [WikiText-103](https://huggingface.co/datasets/Salesforce/wikitext) | Zero-Shot Transfer | Task-specific prompts (no fine-tuning) | Varies by task | Task-dependent | Larger decoder-only model trained on WebText; demonstrates emergent zero-shot capabilities across NLP tasks without task-specific fine-tuning. | [![PyTorch](https://img.shields.io/badge/Py-Torch-red)](gpt2-multitask.ipynb) |
 
 ---
 
