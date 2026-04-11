@@ -36,7 +36,7 @@ First-principles implementations focusing on technical training details:
 
 | Task | Model & Dataset | Format | Classes | Metric | Description | Notebook |
 |------|----------------|--------|---------|--------|-------------|----------|
-| **1** | **[Transformer](https://arxiv.org/abs/1706.03762)**<br>[[Multi30k](https://huggingface.co/datasets/bentrevett/multi30k)] | Src: `[POS]...[EOS]` → Enc<br>Tgt: `[POS]...[EOS]` → Dec | Gen | BLEU | From-scratch Transformer: Multi-Head Attention, positional encodings, residuals, label smoothing for EN-DE translation. | [![PyTorch](https://img.shields.io/badge/Py-Torch-red)](attention-is-all-you-need.ipynb) |
+| **1** | **[Transformer](https://arxiv.org/abs/1706.03762)**<br>[[Multi30k](https://huggingface.co/datasets/bentrevett/multi30k)] | Src: `[POS]...[EOS]` → Enc<br>Tgt: `[POS]...[EOS]` → Dec | N/A | BLEU | From-scratch Transformer: Multi-Head Attention, positional encodings, residuals, label smoothing for EN-DE translation. | [![PyTorch](https://img.shields.io/badge/Py-Torch-red)](attention-is-all-you-need.ipynb) |
 
 ### Encoder-only: Representation Learning (BERT)
 
