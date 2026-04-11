@@ -1,23 +1,24 @@
-name: Colab to GitHub Notebook Metadata Sanitizer
+name: Clean Notebooks for GitHub Rendering
+
 on:
   push:
-    branches: [ main ]
+    branches: [main]
     paths:
       - '**.ipynb'
   workflow_dispatch:
 
 jobs:
-  fix-notebook-render:
+  clean:
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - name: Checkout Repo
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Setup Python
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
@@ -25,51 +26,68 @@ jobs:
       - name: Install nbformat
         run: pip install nbformat
 
-      - name: Clean Notebooks
+      - name: Strip widget metadata and outputs
         run: |
-          python - <<EOF
+          python - <<'EOF'
           import nbformat
           import glob
-          
+
           fixed_count = 0
+
+
+          # Mime types that cause nbconvert to crash when widget state is missing
+          WIDGET_VIEW_MIME  = "application/vnd.jupyter.widget-view+json"
+          WIDGET_STATE_MIME = "application/vnd.jupyter.widget-state+json"
+
           for path in glob.glob("**/*.ipynb", recursive=True):
-              # Skip checkpoint files
               if '.ipynb_checkpoints' in path:
                   continue
-                  
+
               with open(path, 'r', encoding='utf-8') as f:
                   nb = nbformat.read(f, as_version=4)
-              
+
               modified = False
-              
-              # 1. Strip widget metadata (Fixes GitHub 'state' error)
-              if 'widgets' in nb.metadata:
-                  del nb.metadata['widgets']
-                  print(f"✓ Fixed metadata in {path}")
-                  modified = True
-              
-              # 2. Clear problematic outputs (Login widgets and HTML videos)
+
+              # 1. Remove all widget / colab metadata keys
+              for key in ('widgets', 'colab', 'accelerator'):
+                  if key in nb.metadata:
+                      del nb.metadata[key]
+                      print(f"  [meta] removed '{key}' from {path}")
+                      modified = True
+
+              # 2. Drop any cell output that embeds a widget view or widget state.
+              #    These reference widget state that no longer exists after stripping
+              #    nb.metadata.widgets, causing nbconvert's widgetsdatatypefilter
+              #    to raise KeyError: 'state'.
               for cell in nb.cells:
-                  if cell.cell_type == 'code':
-                      source = cell.source.lower()
-                      if 'notebook_login' in source or '%%html' in source:
-                          if cell.outputs:
-                              cell.outputs = []
-                              print(f"✓ Cleared widget/video output in {path}")
-                              modified = True
-              
+                  if cell.cell_type != 'code':
+                      continue
+                  before = len(cell.get('outputs', []))
+                  cell['outputs'] = [
+                      out for out in cell.get('outputs', [])
+                      if WIDGET_VIEW_MIME  not in out.get('data', {})
+                      and WIDGET_STATE_MIME not in out.get('data', {})
+                  ]
+                  dropped = before - len(cell['outputs'])
+                  if dropped:
+                      print(f"  [cell] dropped {dropped} widget output(s) in {path}")
+                      modified = True
+
               if modified:
                   with open(path, 'w', encoding='utf-8') as f:
                       nbformat.write(nb, f)
+                  print(f"✓ Cleaned: {path}")
                   fixed_count += 1
+              else:
+                  print(f"— Already clean: {path}")
           
           print(f"\nTotal notebooks fixed: {fixed_count}")
           EOF
 
-      - name: Commit and Push Changes
+      - name: Commit cleaned notebooks
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "🤖 chore: sanitize notebooks for GitHub rendering [skip ci]"
+          commit_message: "🤖 chore: strip widget metadata for clean GitHub rendering [skip ci]"
           file_pattern: "**/*.ipynb"
           commit_user_name: github-actions[bot]
           commit_user_email: github-actions[bot]@users.noreply.github.com
