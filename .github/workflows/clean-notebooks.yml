@@ -29,59 +29,88 @@ jobs:
       - name: Strip widget metadata and outputs
         run: |
           python - <<'EOF'
-          import nbformat
-          import glob
+          import json, glob, copy
 
-          fixed_count = 0
-
-
-          # Mime types that cause nbconvert to crash when widget state is missing
-          WIDGET_VIEW_MIME  = "application/vnd.jupyter.widget-view+json"
+          # Work directly on raw JSON — bypasses nbformat's own validation so we
+          # can inspect and fix malformed structures that nbformat silently ignores.
           WIDGET_STATE_MIME = "application/vnd.jupyter.widget-state+json"
+          WIDGET_VIEW_MIME  = "application/vnd.jupyter.widget-view+json"
+
+          def is_widgets_clean(widgets_meta):
+              """
+              GitHub and nbconvert both require:
+                metadata.widgets[WIDGET_STATE_MIME]["state"] to exist and be a dict.
+              Returns True only when the structure is fully valid.
+              """
+              if not isinstance(widgets_meta, dict):
+                  return False
+              inner = widgets_meta.get(WIDGET_STATE_MIME)
+              if not isinstance(inner, dict):
+                  return False
+              if not isinstance(inner.get("state"), dict):
+                  return False
+              return True
 
           for path in glob.glob("**/*.ipynb", recursive=True):
               if '.ipynb_checkpoints' in path:
                   continue
 
               with open(path, 'r', encoding='utf-8') as f:
-                  nb = nbformat.read(f, as_version=4)
+                  try:
+                      nb = json.load(f)
+                  except json.JSONDecodeError as e:
+                      print(f"  ⚠ skipping {path}: JSON parse error — {e}")
+                      continue
 
               modified = False
+              meta = nb.get("metadata", {})
 
-              # 1. Remove all widget / colab metadata keys
-              for key in ('widgets', 'colab', 'accelerator'):
-                  if key in nb.metadata:
-                      del nb.metadata[key]
+              # ── 1. widgets metadata ─────────────────────────────────────────
+              # Remove the entire block whenever it is absent OR malformed.
+              # This covers three real-world cases that both GitHub and nbconvert
+              # choke on:
+              #   a) metadata.widgets exists but has no WIDGET_STATE_MIME key
+              #   b) metadata.widgets[WIDGET_STATE_MIME] exists but has no "state"
+              #   c) metadata.widgets[WIDGET_STATE_MIME]["state"] is not a dict
+              if "widgets" in meta:
+                  if not is_widgets_clean(meta["widgets"]):
+                      del meta["widgets"]
+                      print(f"  [meta] removed malformed 'widgets' from {path}")
+                      modified = True
+                  else:
+                      print(f"  [meta] 'widgets' in {path} is valid — keeping")
+
+              # ── 2. Colab / accelerator keys (unrelated to rendering) ────────
+              for key in ('colab', 'accelerator'):
+                  if key in meta:
+                      del meta[key]
                       print(f"  [meta] removed '{key}' from {path}")
                       modified = True
 
-              # 2. Drop any cell output that embeds a widget view or widget state.
-              #    These reference widget state that no longer exists after stripping
-              #    nb.metadata.widgets, causing nbconvert's widgetsdatatypefilter
-              #    to raise KeyError: 'state'.
-              for cell in nb.cells:
-                  if cell.cell_type != 'code':
+              # ── 3. Cell outputs containing widget mime types ────────────────
+              # Any widget-view output now references state that no longer exists
+              # (we deleted metadata.widgets above), so drop those outputs too.
+              for cell in nb.get("cells", []):
+                  if cell.get("cell_type") != "code":
                       continue
-                  before = len(cell.get('outputs', []))
-                  cell['outputs'] = [
-                      out for out in cell.get('outputs', [])
-                      if WIDGET_VIEW_MIME  not in out.get('data', {})
-                      and WIDGET_STATE_MIME not in out.get('data', {})
+                  before = len(cell.get("outputs", []))
+                  cell["outputs"] = [
+                      out for out in cell.get("outputs", [])
+                      if WIDGET_VIEW_MIME  not in out.get("data", {})
+                      and WIDGET_STATE_MIME not in out.get("data", {})
                   ]
-                  dropped = before - len(cell['outputs'])
+                  dropped = before - len(cell["outputs"])
                   if dropped:
                       print(f"  [cell] dropped {dropped} widget output(s) in {path}")
                       modified = True
 
               if modified:
                   with open(path, 'w', encoding='utf-8') as f:
-                      nbformat.write(nb, f)
+                      json.dump(nb, f, indent=1, ensure_ascii=False)
+                      f.write("\n")
                   print(f"✓ Cleaned: {path}")
-                  fixed_count += 1
               else:
                   print(f"— Already clean: {path}")
-          
-          print(f"\nTotal notebooks fixed: {fixed_count}")
           EOF
 
       - name: Commit cleaned notebooks
