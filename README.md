@@ -18,13 +18,13 @@ First-principles implementations focusing on technical training details:
 
 ---
 
-## Performance: RNN vs. Transformer (Multi30k EN→DE)
+## Performance: RNN vs. Transformer (Multi30k `EN`→`DE`)
 
 | Metric | RNN (LSTM) Baseline | Transformer (From Scratch) | Verdict |
 | :--- | :---: | :---: | :--- |
 | **BLEU** | 14.94 | **28.74** | +92% |
-| **Perplexity** | 42.91 | **6.53** | Superior |
-| **Bits/Character (BPC)** | 5.42 | **2.70** | Precise |
+| **Perplexity** | 42.91 | **6.53** | Superior Certainty |
+| **Bits/Character (BPC)** | 5.42 | **2.70** | Precise Alignment  |
 
 >The following results were achieved on the **Multi30k (English-to-German)** translation task, comparing my [RNN/LSTM baseline](https://github.com/chizkidd/deep-learning-models/blob/main/pytorch/rnn/rnn-seq2seq.ipynb) against this repository's Transformer implementation (**AIAYN**).
 
@@ -32,7 +32,7 @@ First-principles implementations focusing on technical training details:
 
 ## Model Catalog
 
-### Encoder-Decoder: Neural Machine Translation
+### Encoder-Decoder: Neural Machine Translation (Attention Is All You Need)
 
 | Task | Model & Dataset | Format | Classes | Metric | Description | Notebook |
 |------|----------------|--------|---------|--------|-------------|----------|
