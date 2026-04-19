@@ -5,6 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![View Notebooks](https://img.shields.io/badge/View-Live%20Notebooks-blue?logo=github)](https://chizkidd.github.io/transformers-from-scratch/)
 [![Notebooks Deployment Status](https://github.com/chizkidd/transformers-from-scratch/actions/workflows/deploy-notebooks.yml/badge.svg)](https://github.com/chizkidd/transformers-from-scratch/actions/workflows/deploy-notebooks.yml)
+![visitor badge](https://visitor-badge.laobi.icu/badge?page_id=chizkidd.transformers-from-scratch)
 
 A comprehensive collection of Transformer architectures implemented from scratch in PyTorch — from **"Attention Is All You Need"** to modern LLMs.
 
