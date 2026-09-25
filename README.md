@@ -78,4 +78,5 @@ pip install -r requirements.txt
 ## References
 * Vaswani et al. (2017). [Attention Is All You Need](https://arxiv.org/abs/1706.03762)
 * Devlin et al. (2018). [BERT: Pre-training of Deep Bidirectional Transformers](https://arxiv.org/abs/1810.04805)
+* Radford et al. (2018). [Improving Language Understanding by Generative Pre-Training](https://cdn.openai.com/research-covers/language-unsupervised/language_understanding_paper.pdf)
 * Radford et al. (2019). [Language Models are Unsupervised Multitask Learners](https://openai.com/research/better-language-models)
